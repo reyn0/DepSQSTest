@@ -13,7 +13,7 @@ Once you finished with the test, you can turn off the command prompt by Ctrl+C.
 Pull the code from:
 https://github.com/reyn0/DepSQSTest
 
-=================================================================================================
+==================================================================================
 
 HOW TO RUN:
 
@@ -22,7 +22,7 @@ The test can be run from Visual Studio
 - Build Solution from Visual Studio. I use VS2017 with .Net Core 2.1
 - Run the tests from test explorer in Visual Studio
 
-=================================================================================================
+==================================================================================
 
 Technology:
 I use C#
