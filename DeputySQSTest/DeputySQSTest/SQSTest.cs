@@ -1,8 +1,8 @@
-using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Amazon.SQS;
 using Amazon.SQS.Model;
-using System.Text;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Deputy
@@ -68,8 +68,53 @@ namespace Deputy
 
         #region EndToEndTest
         ///<summary>
-        /// This will test the 
+        /// This will test the end to end journey of a user
+        /// Steps:
+        /// 1. Create the queue
+        /// 2. Verify that the queue is created and the list is not null
+        /// 3. Send message to the queue
+        /// 4. Verify the message body is correct between the request and the response
+        /// 5. Receive the message that just being sent
+        /// 6. Verify the message body is the same
+        /// 7. Get message receipt handler
+        /// 8. Delete the message
+        /// 9. Verify that message is deleted from the queue
+        /// 10. Since we know that we only created 1 queue, we can delete the only one we created
+        /// 11. Verify that the list count is now 0
         ///</summary>
+        [TestMethod]
+        [Ignore("Ignore this test due to incomplete code. Error on sending the message")]
+        public async Task TestEndToEnd()
+        {
+            // Create the queue
+            queueName = setQueueName();
+            CreateQueueResponse createResponse = await sqsClient.CreateQueueAsync(queueName);
+
+            // Get the queue list. Assert is added to make sure that the queue is created and make sure that we only create 1 queue
+            var sqsQueueList = await sqsClient.ListQueuesAsync(prefix);
+            Assert.IsTrue(sqsQueueList.QueueUrls.Count == 1, "Queue is not created or more than one queue is created");
+
+            // Verify the response created from when creating the queue is the same as the one we get from get queue URL
+            var request = new GetQueueUrlRequest(queueName);
+            var responseQueue = sqsClient.GetQueueUrlAsync(request);
+            Assert.AreEqual(createResponse.QueueUrl, responseQueue.Result.QueueUrl, "The queue URL is not the same");
+
+            // Send message to the queue
+            var requestMessage = new SendMessageRequest(responseQueue.Result.ToString(), messageBody);
+
+            // Get the response when sending the message request
+            var responseMessage = await sqsClient.SendMessageAsync(requestMessage);
+
+            // Verify the message body is correct between the request and the response
+            ValidateMD5(requestMessage.MessageBody, responseMessage.MD5OfMessageBody);
+
+            // Since we know that we only created 1 queue, we can delete the only one
+            await sqsClient.DeleteQueueAsync(sqsQueueList.QueueUrls[0].ToString());
+
+            // Get the list again, and verify that the list count is now 0
+            sqsQueueList = await sqsClient.ListQueuesAsync(prefix);
+            Assert.IsTrue(sqsQueueList.QueueUrls.Count == 0, "The queue is not deleted");
+        }
         #endregion
 
         #region Positive Test
@@ -85,7 +130,7 @@ namespace Deputy
         {
             // Create the queue
             queueName = setQueueName();
-            CreateQueueResponse createResponse =  await sqsClient.CreateQueueAsync(queueName);
+            CreateQueueResponse createResponse = await sqsClient.CreateQueueAsync(queueName);
 
             // Get the queue list. Assert is added to make sure that the queue is created and make sure that we only create 1 queue
             var sqsQueueList = sqsClient.ListQueuesAsync(prefix);
@@ -165,29 +210,37 @@ namespace Deputy
             ValidateMD5(request.MessageBody, response.Result.MD5OfMessageBody);
         }
 
-        ///// <summary>
-        ///// Send message in a queue
-        ///// Steps:
-        ///// 1. Create the queue
-        ///// 2. Send message to the queue
-        ///// 3. Verify the message body is correct between the request and the response
-        ///// </summary>
-        //[TestMethod]
-        //public void TestSendMessageInBatch()
-        //{
-        //    // Create the queue
-        //    queueName = setQueueName();
-        //    queueURL = createQueueURL(queueName);
+        /// <summary>
+        /// Send message in a queue
+        /// Steps:
+        /// 1. Create the queue
+        /// 2. Send message to the queue
+        /// 3. Verify the message body is correct between the request and the response
+        /// </summary>
+        [TestMethod]
+        [Ignore("Ignore this test due to incomplete code")]
+        public void TestSendMessageInBatch()
+        {
+            // Create the queue
+            queueName = setQueueName();
+            queueURL = createQueueURLAsync(queueName);
 
-        //    // Send message to the queue
-        //    var request = new SendMessageBatchRequest(queueURL, );
+            List<SendMessageBatchRequestEntry> batchMessage = new List<SendMessageBatchRequestEntry>();
+            //batchMessage.AddRange("one");
+            //batchMessage.AddRange("two");
+            //batchMessage.Add("three");
+            //batchMessage.Add("four");
+            //batchMessage.Add("four");
 
-        //    // Get the response when sending the message request
-        //    var response = sqsClient.SendMessageBatch(request);
+            // Send message to the queue
+            var request = new SendMessageBatchRequest(queueURL.Result.ToString(), batchMessage);
 
-        //    // Verify the message body is correct between the request and the response
-        //    ValidateMD5(request.MessageBody, response.MD5OfMessageBody);
-        //}
+            // Get the response when sending the message request
+            var response = sqsClient.SendMessageBatchAsync(request);
+
+            // Verify the message body is correct between the request and the response
+            ValidateMD5(request.Entries.ToString(), response.Result.ToString());
+        }
 
         /// <summary>
         /// Send message in a queue with delay
