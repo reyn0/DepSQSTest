@@ -32,6 +32,7 @@ I needed to use language that I am familiar with and something that can be easil
 
 Technical details:
 - First I set up my environment properly so that I can run the stand-alone elasticmq
+- Added into github now instead of sharing the files directly
 - I started with a simple create queue test as that is the most important in AWS. Without the queue, we cannot manipulate the messages.
 - I then started working on Delete Queue, Get Queue URL, Send Message, Retrieve Message and Delete Message.
 - Since the last time, the AWS SDK is updated and all of my tests and function is no longer working. 
@@ -48,9 +49,10 @@ Technical details:
     - Added test for sending a message to none existent queue
 
 What can be tested further:
+
 If I had more time to implement this, I would like to expand the test further about:
-- Batch sending messages and batch delete messages.
+- Batch sending messages and batch delete messages. (code is started, but having issue with the batching)
 - Some extended functionality like Change Message Visibility, Get Queue Attributes, Dead Letter Queue, Permissions, etc.
-- End to end test that covers most of the functionality.
+- End to end test that covers most of the functionality. (code is added, but having issue with the sending messages)
 - Reduce some repetitive in my code. 
 - Create a base class for test initiation, clean up and some of the commonly shared methods
